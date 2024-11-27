@@ -33,7 +33,7 @@ __sdkman_complete_command() {
 			done
 			;;
 		install|i|list|ls)
-			candidates=${SDKMAN_CANDIDATES[@]}
+			candidates=("${SDKMAN_CANDIDATES[@]}")
 			;;
 		env|e)
 			candidates=("init" "install" "clear")
@@ -49,7 +49,11 @@ __sdkman_complete_command() {
 			;;
 	esac
 
-	COMPREPLY=($(compgen -W "${candidates[*]}" -- "$current_word"))
+	local fifo && fifo=$(mktemp -u) && {
+		compgen -W "${candidates[*]}" -- "$current_word" > "$fifo" &
+		IFS=$'\n' read -r -d '' -a COMPREPLY < "$fifo"
+		rm -f "$fifo"
+	}
 }
 
 __sdkman_complete_candidate_version() {
@@ -76,7 +80,11 @@ __sdkman_complete_candidate_version() {
 			;;
 	esac
 
-	COMPREPLY=($(compgen -W "${candidates[*]}" -- "$candidate_version"))
+	local fifo && fifo=$(mktemp -u) && {
+		compgen -W "${candidates[*]}" -- "$candidate_version" > "$fifo" &
+		IFS=$'\n' read -r -d '' -a COMPREPLY < "$fifo"
+		rm -f "$fifo"
+	}
 }
 
 complete -o default -F _sdk sdk
