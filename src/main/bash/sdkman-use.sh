@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #
-#   Copyright 2021 Marco Vermeulen
+#   Copyright 2021-2023 Marco Vermeulen
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -49,10 +49,7 @@ function __sdk_use() {
 		export PATH=${PATH//${SDKMAN_CANDIDATES_DIR}\/${candidate}\/${matched_version}/${SDKMAN_CANDIDATES_DIR}\/${candidate}\/${version}}
 	fi
 
-	if [[ ! (-L "${SDKMAN_CANDIDATES_DIR}/${candidate}/current" || -d "${SDKMAN_CANDIDATES_DIR}/${candidate}/current") ]]; then
-		__sdkman_echo_green "Setting ${candidate} version ${version} as default."
-		__sdkman_link_candidate_version "$candidate" "$version"
-	fi
+	__sdk_set_default "$candidate" "$version"
 
 	echo ""
 	__sdkman_echo_green "Using ${candidate} version ${version} in this shell."

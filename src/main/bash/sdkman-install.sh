@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #
-#   Copyright 2021 Marco Vermeulen
+#   Copyright 2021-2023 Marco Vermeulen
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,6 +15,26 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
+
+
+function __sdk_set_default() {
+	local candidate VERSION
+
+	candidate="$1"
+	VERSION="$2"
+
+	if [[ "$sdkman_auto_answer" != 'true' && "$auto_answer_upgrade" != 'true' && -n "$CURRENT" ]]; then
+		__sdkman_echo_confirm "Do you want ${candidate} version ${VERSION} to be set as default? (Y/n): "
+		read USE
+	fi
+
+	if [[ -z "$USE" || "$USE" == "y" || "$USE" == "Y" ]]; then
+		echo ""
+		__sdkman_echo_green "Setting ${candidate} version ${VERSION} as default."
+		__sdkman_link_candidate_version "$candidate" "$VERSION"
+		__sdkman_add_to_path "$candidate"
+	fi
+}
 
 function __sdk_install() {
 	local candidate version folder
@@ -36,17 +56,7 @@ function __sdk_install() {
 		__sdkman_determine_current_version "$candidate"
 		__sdkman_install_candidate_version "$candidate" "$VERSION" || return 1
 
-		if [[ "$sdkman_auto_answer" != 'true' && "$auto_answer_upgrade" != 'true' && -n "$CURRENT" ]]; then
-			__sdkman_echo_confirm "Do you want ${candidate} ${VERSION} to be set as default? (Y/n): "
-			read USE
-		fi
-
-		if [[ -z "$USE" || "$USE" == "y" || "$USE" == "Y" ]]; then
-			echo ""
-			__sdkman_echo_green "Setting ${candidate} ${VERSION} as default."
-			__sdkman_link_candidate_version "$candidate" "$VERSION"
-			__sdkman_add_to_path "$candidate"
-		fi
+		__sdk_set_default "$candidate" "$VERSION"
 
 		return 0
 	elif [[ "$VERSION_VALID" == 'invalid' && -n "$folder" ]]; then
@@ -104,7 +114,9 @@ function __sdkman_install_local_version() {
 	if [[ -d "$folder" ]]; then
 		__sdkman_echo_green "Linking ${candidate} ${version} to ${folder}"
 		ln -s "$folder" "${SDKMAN_CANDIDATES_DIR}/${candidate}/${version}"
-		__sdkman_echo_green "Done installing!"
+
+		__sdk_set_default "${candidate}" "${version}"
+		__sdkman_echo_green "Done linking to $folder!"
 	else
 		__sdkman_echo_red "Invalid path! Refusing to link ${candidate} ${version} to ${folder}."
 		return 1
