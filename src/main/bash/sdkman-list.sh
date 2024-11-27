@@ -76,7 +76,7 @@ function __sdkman_offline_list() {
 	__sdkman_echo_no_colour "--------------------------------------------------------------------------------"
 
 	local versions=($(echo ${versions_csv//,/ }))
-	for ((i = ${#versions} - 1; i >= 0; i--)); do
+	for ((i = ${#versions[@]}; i > 0; i--)); do
 		if [[ -n "${versions[${i}]}" ]]; then
 			if [[ "${versions[${i}]}" == "$CURRENT" ]]; then
 				__sdkman_echo_no_colour " > ${versions[${i}]}"
