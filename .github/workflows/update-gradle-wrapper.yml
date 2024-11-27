@@ -1,0 +1,26 @@
+name: Update Gradle Wrapper
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  update-gradle-wrapper:
+    permissions:
+      contents: write # for gradle-update/update-gradle-wrapper-action
+      pull-requests: write # for gradle-update/update-gradle-wrapper-action
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Update Gradle Wrapper
+        uses: gradle-update/update-gradle-wrapper-action@981c551b17dbcf1940b1b4435afdb79babb7c13a # v1.0.13
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          labels: dependencies
+
+      - uses: gradle/wrapper-validation-action@55e685c48d84285a5b0418cd094606e199cca3b6 # v1.0.3
