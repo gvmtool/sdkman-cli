@@ -58,9 +58,9 @@ esac
 zsh_shell=false
 bash_shell=false
 
-if [[ -n "$ZSH_VERSION" ]]; then
+if [[ -n "${ZSH_VERSION:-}" ]]; then
 	zsh_shell=true
-elif [[ -n "$BASH_VERSION" ]]; then
+elif [[ -n "${BASH_VERSION:-}" ]]; then
 	bash_shell=true
 fi
 
@@ -166,7 +166,7 @@ if [[ "$sdkman_auto_env" == "true" ]]; then
 
 			export SDKMAN_OLD_PWD="$PWD"
 		}
-		
+
 		trimmed_prompt_command="${PROMPT_COMMAND%"${PROMPT_COMMAND##*[![:space:]]}"}"
 		[[ -z "$trimmed_prompt_command" ]] && PROMPT_COMMAND="sdkman_auto_env" || PROMPT_COMMAND="${trimmed_prompt_command%\;};sdkman_auto_env"
 	fi
