@@ -24,20 +24,59 @@ function __sdk_use() {
 	__sdkman_check_version_present "$version" || return 1
 	__sdkman_check_candidate_present "$candidate" || return 1
 
-	if [[ ! -d "${SDKMAN_CANDIDATES_DIR}/${candidate}/${version}" ]]; then
+	major_version=$(echo $version | cut -d. -f1)
+	if [[ "$major_version" == "$version" ]]; then
+        count=0
+        
+        for dir in "${SDKMAN_CANDIDATES_DIR}/${candidate}"/*; do
+            if [ -d "$dir" ] && [[ "$(basename "$dir")" == "${major_version}"* ]];
+            then
+                ((count++))
+            fi
+        done
+        if [[ ${count} -eq 0 ]]
+        then
+			echo ""
+			__sdkman_echo_red "Stop! No matching version found."
+			echo ""
+        elif [[ ${count} -eq 1 ]]
+		then
+			version=$(basename $(ls -d "${SDKMAN_CANDIDATES_DIR}/${candidate}/${major_version}"*))
+			__sdkman_change_candidate_in_path "$candidate"
+			__sdkman_echo_green "Using ${candidate} version ${version} in this shell."
+		else
+			echo ""
+			__sdkman_echo_red "Stop! Cannot decide which version to use."
+			echo ""
+			__sdkman_echo_yellow
+        fi
+	else
+		if [[ ! -d "${SDKMAN_CANDIDATES_DIR}/${candidate}/${version}" ]]; then
+			echo ""
+			__sdkman_echo_red "Stop! Candidate version is not installed."
+			echo ""
+			__sdkman_echo_yellow "Tip: Run the following to install this version"
+			echo ""
+			__sdkman_echo_yellow "$ sdk install ${candidate} ${version}"
+			return 1
+		fi
+	
+		# Just update the *_HOME and PATH for this shell.
+		__sdkman_set_candidate_home "$candidate" "$version"
+	
+		__sdkman_change_candidate_in_path "$candidate"
+		if [[ ! (-L "${SDKMAN_CANDIDATES_DIR}/${candidate}/current" || -d "${SDKMAN_CANDIDATES_DIR}/${candidate}/current") ]]; then
+			__sdkman_echo_green "Setting ${candidate} version ${version} as default."
+			__sdkman_link_candidate_version "$candidate" "$version"
+		fi
+	
 		echo ""
-		__sdkman_echo_red "Stop! Candidate version is not installed."
-		echo ""
-		__sdkman_echo_yellow "Tip: Run the following to install this version"
-		echo ""
-		__sdkman_echo_yellow "$ sdk install ${candidate} ${version}"
-		return 1
+		__sdkman_echo_green "Using ${candidate} version ${version} in this shell."
 	fi
+}
 
-	# Just update the *_HOME and PATH for this shell.
-	__sdkman_set_candidate_home "$candidate" "$version"
-
-	if [[ $PATH =~ ${SDKMAN_CANDIDATES_DIR}/${candidate}/([^/]+) ]]; then
+function __sdkman_change_candidate_in_path() {
+	if [[ $PATH =~ ${SDKMAN_CANDIDATES_DIR}/${1}/([^/]+) ]]; then
 		local matched_version
 
 		if [[ "$zsh_shell" == "true" ]]; then
@@ -48,12 +87,4 @@ function __sdk_use() {
 
 		export PATH=${PATH//${SDKMAN_CANDIDATES_DIR}\/${candidate}\/${matched_version}/${SDKMAN_CANDIDATES_DIR}\/${candidate}\/${version}}
 	fi
-
-	if [[ ! (-L "${SDKMAN_CANDIDATES_DIR}/${candidate}/current" || -d "${SDKMAN_CANDIDATES_DIR}/${candidate}/current") ]]; then
-		__sdkman_echo_green "Setting ${candidate} version ${version} as default."
-		__sdkman_link_candidate_version "$candidate" "$version"
-	fi
-
-	echo ""
-	__sdkman_echo_green "Using ${candidate} version ${version} in this shell."
 }
