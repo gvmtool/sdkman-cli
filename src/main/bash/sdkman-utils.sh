@@ -32,7 +32,7 @@ function __sdkman_secure_curl() {
 
 function __sdkman_secure_curl_download() {
 	local curl_params
-	curl_params=('--progress-bar' '--location')
+	curl_params=('--progress-bar' '--location' '--remove-on-error')
 
 	if [[ "${sdkman_debug_mode}" == 'true' ]]; then
 		curl_params+=('--verbose')
