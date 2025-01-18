@@ -34,7 +34,7 @@ function __sdk_uninstall() {
 
 	echo ""
 
-	if [ -d "${SDKMAN_CANDIDATES_DIR}/${candidate}/${version}" ]; then
+	if [[ -d "${SDKMAN_CANDIDATES_DIR}/${candidate}/${version}" || -L "${SDKMAN_CANDIDATES_DIR}/${candidate}/${version}" ]]; then
 		__sdkman_echo_green "Uninstalling ${candidate} ${version}..."
 		rm -rf "${SDKMAN_CANDIDATES_DIR}/${candidate}/${version}"
 	else
